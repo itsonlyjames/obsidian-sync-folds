@@ -3,9 +3,11 @@
 	"name": "Sync Folds",
 	"version": "1.0.0",
 	"minAppVersion": "0.15.0",
-	"description": "Demonstrates some of the capabilities of the Obsidian API.",
+	"description": "Enables Syncing of Fold States Across Devices",
 	"author": "James Alexandre",
-	"authorUrl": "https://obsidian.md",
-	"fundingUrl": "https://obsidian.md/pricing",
+	"authorUrl": "https://github.com/itsonlyjames",
+	"fundingUrl": {
+		"GitHub Sponsor": "https://github.com/sponsors/itsonlyjames"
+	},
 	"isDesktopOnly": false
 }
