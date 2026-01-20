@@ -1,9 +1,11 @@
-import {
-    Notice,
-    Plugin,
-    TFile,
-    MarkdownView
-} from 'obsidian'
+import { Notice, Plugin, TFile, MarkdownView } from 'obsidian'
+
+declare const DEBUG: boolean
+const log = (...args: any[]) => {
+    if (DEBUG) {
+        console.log('[SyncFolds]', ...args)
+    }
+}
 
 interface SyncFoldSettings {
     syncFilePath: string
@@ -37,20 +39,24 @@ export default class SyncFolds extends Plugin {
 
     async onload() {
         await this.loadSettings()
-        console.log('[FoldSync] Plugin loaded with settings:', this.settings)
+        log('Plugin loaded with settings:', this.settings)
+
+        const syncFilePath = this.settings.syncFilePath
+        const exists = await this.app.vault.adapter.exists(syncFilePath)
 
         // Intercept localStorage changes to detect fold state changes
         if (this.settings.enableSync) {
-            console.log('[FoldSync] Intercepting localStorage')
+            log('Intercepting localStorage')
             this.interceptLocalStorage()
         }
 
         // Initial export to capture current localStorage state
-        if (this.settings.enableSync) {
-            console.log(
-                '[FoldSync] Performing initial export of all fold states'
-            )
+        if (this.settings.enableSync && !exists) {
+            log('No fold states file: Exporting Existing Local Storage Folds')
             await this.exportFoldsToFile()
+        } else {
+            log('Fold states file exists: Populating Local Storage')
+            await this.importFoldsToStorage()
         }
 
         // Listen for file opens to apply fold states
@@ -61,22 +67,20 @@ export default class SyncFolds extends Plugin {
                     leaf.view instanceof MarkdownView &&
                     leaf.view.file
                 ) {
-                    console.log('[FoldSync] Active leaf event:', leaf)
+                    log('Active leaf event:', leaf)
                     await new Promise((resolve) => setTimeout(resolve, 100))
                     await this.applyFoldStateForFile(leaf.view.file.path)
                 } else {
-                    console.log(
-                        '[FoldSync] File opened event: no file (closed)'
-                    )
+                    log('File opened event: no file (closed)')
                 }
             })
         )
 
-        console.log('[FoldSync] Plugin initialization complete')
+        log('Plugin initialization complete')
     }
 
     onunload() {
-        console.log('[FoldSync] Plugin unloading')
+        log('Plugin unloading')
         // Restore original localStorage methods
         this.restoreLocalStorage()
 
@@ -107,10 +111,7 @@ export default class SyncFolds extends Plugin {
         const appId = app.appId
         const foldPrefix = `${appId}-note-fold-`
 
-        console.log(
-            '[FoldSync] Setting up localStorage interception with prefix:',
-            foldPrefix
-        )
+        log('Setting up localStorage interception with prefix:', foldPrefix)
 
         // Store original methods
         this.originalSetItem = localStorage.setItem.bind(localStorage)
@@ -123,7 +124,7 @@ export default class SyncFolds extends Plugin {
             // Check if this is a fold state change
             if (key.startsWith(foldPrefix)) {
                 const filePath = key.replace(foldPrefix, '')
-                console.log('[FoldSync] Fold state changed:', filePath)
+                log('Fold state changed:', filePath)
                 this.debouncedSyncFile(filePath, value)
             }
         }
@@ -135,7 +136,7 @@ export default class SyncFolds extends Plugin {
             // Check if this is a fold state removal
             if (key.startsWith(foldPrefix)) {
                 const filePath = key.replace(foldPrefix, '')
-                console.log('[FoldSync] Fold state removed:', filePath)
+                log('Fold state removed:', filePath)
                 this.debouncedSyncFile(filePath, null)
             }
         }
@@ -156,14 +157,14 @@ export default class SyncFolds extends Plugin {
             window.clearTimeout(this.debounceTimer)
         }
 
-        console.log('[FoldSync] Debouncing full sync (500ms)...')
+        log('Debouncing full sync (150ms)...')
 
-        // Set new timer to sync after 500ms of no changes
+        // Set new timer to sync after 150ms of no changes
         this.debounceTimer = window.setTimeout(async () => {
-            console.log('[FoldSync] Executing debounced full sync')
+            log('Executing debounced full sync')
             await this.exportFoldsToFile()
             this.debounceTimer = null
-        }, 500)
+        }, 150)
     }
 
     debouncedSyncFile(filePath: string, value: string | null) {
@@ -172,26 +173,23 @@ export default class SyncFolds extends Plugin {
             window.clearTimeout(this.debounceTimer)
         }
 
-        console.log('[FoldSync] Debouncing file sync (500ms) for:', filePath)
+        log('Debouncing file sync (150ms) for:', filePath)
 
-        // Set new timer to sync after 500ms of no changes
+        // Set new timer to sync after 150ms of no changes
         this.debounceTimer = window.setTimeout(async () => {
-            console.log(
-                '[FoldSync] Executing debounced file sync for:',
-                filePath
-            )
+            log('Executing debounced file sync for:', filePath)
             await this.upsertFoldStateForFile(filePath, value)
             this.debounceTimer = null
-        }, 500)
+        }, 150)
     }
 
     async exportFoldsToFile() {
         if (!this.settings.enableSync) {
-            console.log('[FoldSync] Sync disabled, skipping export')
+            log('Sync disabled, skipping export')
             return
         }
 
-        console.log('[FoldSync] Starting FULL export to file')
+        log('Starting FULL export to file')
 
         const app = this.app as any
         const appId = app.appId
@@ -208,7 +206,7 @@ export default class SyncFolds extends Plugin {
                         foldStates[filePath] = JSON.parse(value)
                     } catch (e) {
                         console.error(
-                            `[FoldSync] Failed to parse fold state for ${filePath}:`,
+                            `Failed to parse fold state for ${filePath}:`,
                             e
                         )
                     }
@@ -216,11 +214,7 @@ export default class SyncFolds extends Plugin {
             }
         }
 
-        console.log(
-            '[FoldSync] Found fold states for',
-            Object.keys(foldStates).length,
-            'files'
-        )
+        log('Found fold states for', Object.keys(foldStates).length, 'files')
 
         // Write to file using adapter for direct file system access (minified)
         const content = JSON.stringify(foldStates)
@@ -228,23 +222,51 @@ export default class SyncFolds extends Plugin {
 
         try {
             await this.app.vault.adapter.write(filePath, content)
-            console.log(
-                '[FoldSync] Successfully exported ALL fold states to:',
-                filePath
-            )
+            log('Successfully exported ALL fold states to:', filePath)
         } catch (e) {
-            console.error('[FoldSync] Failed to export fold states:', e)
+            console.error('Failed to export fold states:', e)
             new Notice('Failed to export fold states')
+        }
+    }
+
+    async importFoldsToStorage() {
+        const syncFilePath = this.settings.syncFilePath
+
+        try {
+            const content = await this.app.vault.adapter.read(syncFilePath)
+            const foldStates: FoldStateData = JSON.parse(content)
+
+            log(
+                'Loaded',
+                Object.keys(foldStates).length,
+                'fold states from file'
+            )
+
+            const app = this.app as any
+            const appId = app.appId
+
+            for (const [filePath, foldData] of Object.entries(foldStates)) {
+                const key = `${appId}-note-fold-${filePath}`
+                const value = JSON.stringify(foldData)
+
+                // Use original setItem to avoid triggering our interceptor
+                this.originalSetItem.call(localStorage, key, value)
+            }
+
+            log('Successfully imported fold states to localStorage')
+        } catch (e) {
+            console.error('Failed to import fold states from file:', e)
+            new Notice('Failed to load fold states from file')
         }
     }
 
     async upsertFoldStateForFile(filePath: string, value: string | null) {
         if (!this.settings.enableSync) {
-            console.log('[FoldSync] Sync disabled, skipping upsert')
+            log('Sync disabled, skipping upsert')
             return
         }
 
-        console.log('[FoldSync] Starting upsert for single file:', filePath)
+        log('Starting upsert for single file:', filePath)
         const syncFilePath = this.settings.syncFilePath
 
         try {
@@ -255,85 +277,75 @@ export default class SyncFolds extends Plugin {
             if (exists) {
                 const content = await this.app.vault.adapter.read(syncFilePath)
                 foldStates = JSON.parse(content)
-                console.log(
-                    '[FoldSync] Loaded existing fold states, total files:',
+                log(
+                    'Loaded existing fold states, total files:',
                     Object.keys(foldStates).length
                 )
             } else {
-                console.log(
-                    '[FoldSync] No existing fold states file, creating new'
-                )
+                log('No existing fold states file, creating new')
             }
 
             // Update or remove the specific file's fold state
             if (value === null) {
-                console.log('[FoldSync] Removing fold state for:', filePath)
+                log('Removing fold state for:', filePath)
                 delete foldStates[filePath]
             } else {
-                console.log('[FoldSync] Updating fold state for:', filePath)
+                log('Updating fold state for:', filePath)
                 foldStates[filePath] = JSON.parse(value)
             }
 
             // Write back to file (minified)
             const content = JSON.stringify(foldStates)
             await this.app.vault.adapter.write(syncFilePath, content)
-            console.log(
-                '[FoldSync] ✓ Successfully upserted fold state for:',
-                filePath
-            )
+            log('✓ Successfully upserted fold state for:', filePath)
         } catch (e) {
-            console.error('[FoldSync] Failed to upsert fold state:', e)
+            console.error('Failed to upsert fold state:', e)
             new Notice('Failed to sync fold state')
         }
     }
 
     async applyFoldStateForFile(filePath: string) {
         if (!this.settings.enableSync) {
-            console.log(
-                '[FoldSync] Sync disabled, skipping apply for:',
-                filePath
-            )
+            log('Sync disabled, skipping apply for:', filePath)
             return
         }
 
-        console.log('[FoldSync] ========== APPLYING FOLD STATE ==========')
-        console.log('[FoldSync] File path:', filePath)
+        log('========== APPLYING FOLD STATE ==========')
+        log('File path:', filePath)
 
         const syncFilePath = this.settings.syncFilePath
-        console.log('[FoldSync] Sync file path:', syncFilePath)
+        log('Sync file path:', syncFilePath)
 
         try {
             // Check if fold states file exists
             const exists = await this.app.vault.adapter.exists(syncFilePath)
-            console.log('[FoldSync] Fold states file exists:', exists)
+            log('Fold states file exists:', exists)
 
             if (!exists) {
-                console.log(
-                    '[FoldSync] Fold states file does not exist, nothing to apply'
-                )
+                log('Fold states file does not exist, nothing to apply')
                 return
             }
 
             // Read fold states file
             const content = await this.app.vault.adapter.read(syncFilePath)
-            console.log('[FoldSync] Read file content, length:', content.length)
+            log('Read file content, length:', content.length)
 
             const foldStates: FoldStateData = JSON.parse(content)
-            console.log(
-                '[FoldSync] Parsed fold states, total files:',
+            log(
+                'Parsed fold states, total files:',
                 Object.keys(foldStates).length
             )
 
             // Check if this file has fold states
             if (foldStates[filePath]) {
-                console.log('[FoldSync] ✓ Found fold state for file:', filePath)
-                console.log('[FoldSync] Fold data:', foldStates[filePath])
+                log('✓ Found fold state for file:', filePath)
+                log('Fold data:', foldStates[filePath])
 
                 const app = this.app as any
                 const file = this.app.vault.getAbstractFileByPath(filePath)
 
                 if (!(file instanceof TFile)) {
-                    console.log('[FoldSync] File not found in vault')
+                    log('File not found in vault')
                     return
                 }
 
@@ -347,39 +359,27 @@ export default class SyncFolds extends Plugin {
                             leaf.view.file?.path === filePath
                     )
 
-                console.log(
-                    '[FoldSync] File is open in',
-                    leaves.length,
-                    'views'
-                )
+                log('File is open in', leaves.length, 'views')
 
                 if (leaves.length) {
                     const t = app.workspace.getActiveViewOfType(MarkdownView)
-					t.currentMode.applyFoldInfo(foldStates[filePath])
-					t.onMarkdownFold()
-                    console.log('[FoldSync] ✓ Called applyFoldInfo and view.onMarkdownFold()')
+                    t.currentMode.applyFoldInfo(foldStates[filePath])
+                    t.onMarkdownFold()
+                    log('✓ Called applyFoldInfo and view.onMarkdownFold()')
                 } else {
                     // File is not open, save to foldManager
                     await app.foldManager.save(file, foldStates[filePath])
-                    console.log(
-                        '[FoldSync] ✓ Applied fold state via foldManager.save()'
-                    )
+                    log('✓ Applied fold state via foldManager.save()')
                 }
 
-                console.log('[FoldSync] ========== APPLY COMPLETE ==========')
+                log('========== APPLY COMPLETE ==========')
             } else {
-                console.log(
-                    '[FoldSync] ✗ No fold state found for file:',
-                    filePath
-                )
-                console.log(
-                    '[FoldSync] ========================================'
-                )
+                log('✗ No fold state found for file:', filePath)
+                log('========================================')
             }
         } catch (e) {
-            console.error('[FoldSync] ✗ Failed to apply fold state:', e)
-            console.log('[FoldSync] ========================================')
+            console.error('✗ Failed to apply fold state:', e)
+            log('========================================')
         }
     }
 }
-
