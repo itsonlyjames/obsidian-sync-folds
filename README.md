@@ -46,6 +46,7 @@ Since `fold-states.json` is stored in your vault, it will sync automatically wit
 - iCloud
 - Dropbox
 - Git
+- Self-hosted Syncing Solutions (SyncThing, CouchDB)
 - Any other file syncing solution you use
 
 Just make sure the plugin is installed and enabled on all devices!
