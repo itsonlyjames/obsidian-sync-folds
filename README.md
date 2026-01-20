@@ -34,9 +34,7 @@ Obsidian stores fold states in `localStorage`, which doesn't sync across devices
 
 ### Configuration
 
-The plugin stores fold states in `.obsidian/plugins/obsidian-sync-folds/fold-states.json` by default.
-
-You can change this location in the plugin settings if you want to store it elsewhere in your vault.
+The plugin stores fold states in `.obsidian/plugins/obsidian-sync-folds/fold-states.json`.
 
 ### How to Use with Sync
 
