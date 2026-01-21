@@ -3,7 +3,10 @@ name: Build obsidian plugin
 on:
     push:
         tags:
-            - '*' # Push events to matching any tag format, i.e. 1.0, 20.15.10
+            - "*" # Push events to matching any tag format, i.e. 1.0, 20.15.10
+
+permissions:
+    contents: write
 
 env:
     PLUGIN_NAME: sync-folds # Change this to the name of your plugin-id folder
@@ -17,7 +20,7 @@ jobs:
             - name: Use Node.js
               uses: actions/setup-node@v1
               with:
-                  node-version: '20' # You might need to adjust this value to your own version
+                  node-version: "20" # You might need to adjust this value to your own version
             - name: Build
               id: build
               run: |
@@ -34,8 +37,8 @@ jobs:
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               with:
-                  tag_name: ${{ github.ref }}
-                  release_name: ${{ github.ref }}
+                  tag_name: ${{ github.ref_name }}
+                  release_name: ${{ github.ref_name }}
                   draft: false
                   prerelease: false
             - name: Upload main.js
