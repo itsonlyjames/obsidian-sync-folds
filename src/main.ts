@@ -10,6 +10,52 @@ export default class SyncFolds extends Plugin {
     private originalRemoveItem: typeof Storage.prototype.removeItem
     private cachedFolds: FoldStateData = {}
 
+    async onload() {
+        await this.loadSettings()
+        log('Plugin loaded with settings:', this.settings)
+
+        if (!this.settings.enableSync) {
+            log('Sync disabled, skipping initialization')
+            return
+        }
+
+        log('Intercepting localStorage')
+        this.interceptLocalStorage()
+
+        const folds = this.getFoldsObject()
+        const hasSavedFolds = Object.keys(folds).length > 0
+
+        if (hasSavedFolds) {
+            log('Existing folds found in settings: importing to localStorage')
+            await this.importFoldsToStorage()
+        } else {
+            log('No folds in settings: exporting from localStorage')
+            await this.exportFoldsToFile()
+        }
+
+        this.cachedFolds = { ...this.getFoldsObject() }
+
+        this.addCommand({
+            id: 'export-fold-states',
+            name: 'Export Folds from Local Storage',
+            callback: async () => {
+                await this.exportFoldsToFile()
+                new Notice('Fold states saved to settings')
+            }
+        })
+
+        this.addCommand({
+            id: 'import-fold-states',
+            name: 'Import Folds into Local Storage',
+            callback: async () => {
+                await this.importFoldsToStorage()
+                new Notice('Fold states applied from settings')
+            }
+        })
+
+        log('Plugin initialization complete')
+    }
+
     private getFoldsObject(): FoldStateData {
         try {
             return JSON.parse(this.settings.folds)
@@ -58,52 +104,6 @@ export default class SyncFolds extends Plugin {
 
         this.cachedFolds = currentFolds
         log('localStorage sync complete')
-    }
-
-    async onload() {
-        await this.loadSettings()
-        log('Plugin loaded with settings:', this.settings)
-
-        if (!this.settings.enableSync) {
-            log('Sync disabled, skipping initialization')
-            return
-        }
-
-        log('Intercepting localStorage')
-        this.interceptLocalStorage()
-
-        const folds = this.getFoldsObject()
-        const hasSavedFolds = Object.keys(folds).length > 0
-
-        if (hasSavedFolds) {
-            log('Existing folds found in settings: importing to localStorage')
-            await this.importFoldsToStorage()
-        } else {
-            log('No folds in settings: exporting from localStorage')
-            await this.exportFoldsToFile()
-        }
-
-        this.cachedFolds = { ...this.getFoldsObject() }
-
-        this.addCommand({
-            id: 'export-fold-states',
-            name: 'Export Folds from Local Storage',
-            callback: async () => {
-                await this.exportFoldsToFile()
-                new Notice('Fold states saved to settings')
-            }
-        })
-
-        this.addCommand({
-            id: 'import-fold-states',
-            name: 'Import Folds into Local Storage',
-            callback: async () => {
-                await this.importFoldsToStorage()
-                new Notice('Fold states applied from settings')
-            }
-        })
-
-        log('Plugin initialization complete')
     }
 
     onunload() {
