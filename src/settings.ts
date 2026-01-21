@@ -1,9 +1,11 @@
+import { FoldStateData } from "./types"
+
 export interface SyncFoldSettings {
-    syncFilePath: string
-    enableSync: boolean
+    enableSync: boolean,
+	folds: FoldStateData
 }
 
 export const DEFAULT_SETTINGS: SyncFoldSettings = {
-    syncFilePath: '',
-    enableSync: true
+    enableSync: true,
+	folds: {}
 }
