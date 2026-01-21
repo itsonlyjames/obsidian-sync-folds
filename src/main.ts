@@ -10,12 +10,26 @@ export default class SyncFolds extends Plugin {
     private originalRemoveItem: typeof Storage.prototype.removeItem
     private cachedFolds: FoldStateData = {}
 
+    private getFoldsObject(): FoldStateData {
+        try {
+            return JSON.parse(this.settings.folds)
+        } catch (e) {
+            console.error('Failed to parse folds string:', e)
+            return {}
+        }
+    }
+
+    // Helper to set folds from object
+    private setFoldsObject(folds: FoldStateData): void {
+        this.settings.folds = JSON.stringify(folds)
+    }
+
     public async onExternalSettingsChange(): Promise<void> {
         log('Fold states file changed externally: Syncing with localStorage')
 
         const previousFolds = { ...this.cachedFolds }
         await this.loadSettings()
-        const currentFolds = this.settings.folds
+        const currentFolds = this.getFoldsObject()
 
         const app = this.app as any
         const appId = app.appId
@@ -58,8 +72,8 @@ export default class SyncFolds extends Plugin {
         log('Intercepting localStorage')
         this.interceptLocalStorage()
 
-        const hasSavedFolds =
-            this.settings.folds && Object.keys(this.settings.folds).length > 0
+        const folds = this.getFoldsObject()
+        const hasSavedFolds = Object.keys(folds).length > 0
 
         if (hasSavedFolds) {
             log('Existing folds found in settings: importing to localStorage')
@@ -69,7 +83,7 @@ export default class SyncFolds extends Plugin {
             await this.exportFoldsToFile()
         }
 
-        this.cachedFolds = { ...this.settings.folds }
+        this.cachedFolds = { ...this.getFoldsObject() }
 
         this.addCommand({
             id: 'export-fold-states',
@@ -195,7 +209,7 @@ export default class SyncFolds extends Plugin {
             }
         }
 
-        this.settings.folds = folds
+        this.setFoldsObject(folds)
         this.cachedFolds = { ...folds }
         await this.saveSettings()
 
@@ -203,26 +217,25 @@ export default class SyncFolds extends Plugin {
     }
 
     async importFoldsToStorage() {
+        const folds = this.getFoldsObject()
+
         log(
             'Importing',
-            Object.keys(this.settings.folds).length,
+            Object.keys(folds).length,
             'folds from settings → localStorage'
         )
-
-        log(this.settings.folds, Object.entries(this.settings.folds))
 
         const app = this.app as any
         const appId = app.appId
 
-        for (const [filePath, foldData] of Object.entries(
-            this.settings.folds
-        )) {
+        for (const [filePath, foldData] of Object.entries(folds)) {
+            log(filePath, foldData)
             const key = `${appId}-note-fold-${filePath}`
             const value = JSON.stringify(foldData)
             this.originalSetItem.call(localStorage, key, value)
         }
 
-        this.cachedFolds = { ...this.settings.folds }
+        this.cachedFolds = { ...folds }
         log('Fold states imported successfully')
     }
 
@@ -234,12 +247,14 @@ export default class SyncFolds extends Plugin {
 
         log('Upserting fold state for:', filePath)
 
+        const folds = this.getFoldsObject()
+
         if (value === null) {
-            delete this.settings.folds[filePath]
+            delete folds[filePath]
             log('Removed fold state for:', filePath)
         } else {
             try {
-                this.settings.folds[filePath] = JSON.parse(value)
+                folds[filePath] = JSON.parse(value)
                 log('Updated fold state for:', filePath)
             } catch (e) {
                 console.error('Failed to parse fold JSON:', e)
@@ -247,7 +262,8 @@ export default class SyncFolds extends Plugin {
             }
         }
 
-        this.cachedFolds = { ...this.settings.folds }
+        this.setFoldsObject(folds)
+        this.cachedFolds = { ...folds }
         await this.saveSettings()
     }
 }
