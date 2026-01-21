@@ -3,7 +3,7 @@
 	"name": "Sync Folds",
 	"version": "1.0.0",
 	"minAppVersion": "0.15.0",
-	"description": "Enables Syncing of Fold States Across Devices",
+	"description": "Enables Syncing of Fold States Across Devices.",
 	"author": "James Alexandre",
 	"authorUrl": "https://github.com/itsonlyjames",
 	"fundingUrl": {
