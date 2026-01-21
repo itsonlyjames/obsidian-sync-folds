@@ -1,27 +1,38 @@
 {
-	"name": "obsidian-sync-folds",
-	"version": "1.0.0",
-	"description": "Enables Syncing of Fold States Across Devices",
-	"main": "main.js",
-	"scripts": {
-		"dev": "node esbuild.config.mjs",
-		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
-		"version": "node version-bump.mjs && git add manifest.json versions.json"
-	},
-	"author": {
-		"name":	"James Alexandre",
-		"url": "https://github.com/itsonlyjames"
-	},
-	"keywords": ["obsidian", "obsidian-plugin", "fold", "sync", "collapse"],
-	"license": "MIT",
-	"devDependencies": {
-		"@types/node": "^16.11.6",
-		"@typescript-eslint/eslint-plugin": "5.29.0",
-		"@typescript-eslint/parser": "5.29.0",
-		"builtin-modules": "3.3.0",
-		"esbuild": "0.17.3",
-		"obsidian": "latest",
-		"tslib": "2.4.0",
-		"typescript": "4.7.4"
-	}
+    "name": "obsidian-sync-folds",
+    "version": "1.0.0",
+    "description": "Enables Syncing of Fold States Across Devices",
+    "main": "main.js",
+    "scripts": {
+        "dev": "node esbuild.config.mjs",
+        "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+        "version": "node version-bump.mjs && git add manifest.json versions.json",
+        "lint": "eslint .",
+        "lint:fix": "eslint . --fix"
+    },
+    "author": {
+        "name": "James Alexandre",
+        "url": "https://github.com/itsonlyjames"
+    },
+    "keywords": [
+        "obsidian",
+        "obsidian-plugin",
+        "fold",
+        "sync",
+        "collapse"
+    ],
+    "license": "MIT",
+    "devDependencies": {
+        "@types/node": "^16.11.6",
+        "@typescript-eslint/eslint-plugin": "^8.53.1",
+        "@typescript-eslint/parser": "^8.53.1",
+        "@typescript-eslint/utils": "^8.53.1",
+        "builtin-modules": "3.3.0",
+        "esbuild": "0.17.3",
+        "eslint": "^9.39.2",
+        "eslint-plugin-obsidianmd": "^0.1.9",
+        "obsidian": "latest",
+        "tslib": "2.4.0",
+        "typescript": "^5.9.3"
+    }
 }

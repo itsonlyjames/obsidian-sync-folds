@@ -37,7 +37,7 @@ export default class SyncFolds extends Plugin {
 
         this.addCommand({
             id: 'export-fold-states',
-            name: 'Export Folds from Local Storage',
+            name: 'Export folds from local storage',
             callback: async () => {
                 await this.exportFoldsToFile()
                 new Notice('Fold states saved to settings')
@@ -46,7 +46,7 @@ export default class SyncFolds extends Plugin {
 
         this.addCommand({
             id: 'import-fold-states',
-            name: 'Import Folds into Local Storage',
+            name: 'Import folds into local storage',
             callback: async () => {
                 await this.importFoldsToStorage()
                 new Notice('Fold states applied from settings')
@@ -77,7 +77,7 @@ export default class SyncFolds extends Plugin {
         await this.loadSettings()
         const currentFolds = this.getFoldsObject()
 
-        const app = this.app as any
+        const app = this.app 
         const appId = app.appId
 
         // Remove folds that were deleted
@@ -128,7 +128,7 @@ export default class SyncFolds extends Plugin {
     }
 
     interceptLocalStorage() {
-        const app = this.app as any
+        const app = this.app
         const appId = app.appId
         const foldPrefix = `${appId}-note-fold-`
 
@@ -189,7 +189,7 @@ export default class SyncFolds extends Plugin {
 
         log('Exporting localStorage folds → settings.folds')
 
-        const app = this.app as any
+        const app = this.app
         const appId = app.appId
         const folds: FoldStateData = {}
 
@@ -225,7 +225,7 @@ export default class SyncFolds extends Plugin {
             'folds from settings → localStorage'
         )
 
-        const app = this.app as any
+        const app = this.app 
         const appId = app.appId
 
         for (const [filePath, foldData] of Object.entries(folds)) {

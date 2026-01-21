@@ -1,7 +1,7 @@
 declare const DEBUG: boolean
 
-export const log = (...args: any[]) => {
+export const log = (...args: unknown[]) => {
     if (DEBUG) {
-        console.log('[SyncFolds]', ...args)
+        console.debug('[SyncFolds]', ...args)
     }
 }
