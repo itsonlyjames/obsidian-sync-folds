@@ -16,6 +16,12 @@ Obsidian stores fold states in `localStorage`, which doesn't sync across devices
 - **When you fold/unfold content**: Automatically saves the change to settings (debounced to 150ms)
 - **When settings change externally**: Automatically detects and syncs changes to localStorage
 
+## Work in Progress
+
+- [ ] Apply fold info to active leafs if fold state is changed externally (synced)
+
+---
+
 ## Installation
 
 ### From Obsidian Community Plugins (Coming Soon)
