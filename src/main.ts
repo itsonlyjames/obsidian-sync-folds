@@ -27,7 +27,7 @@ export default class SyncFolds extends Plugin {
 
         if (hasSavedFolds) {
             log('Existing folds found in settings: importing to localStorage')
-            await this.importFoldsToStorage()
+            this.importFoldsToStorage()
         } else {
             log('No folds in settings: exporting from localStorage')
             await this.exportFoldsToFile()
@@ -48,7 +48,7 @@ export default class SyncFolds extends Plugin {
             id: 'import-fold-states',
             name: 'Import folds into local storage',
             callback: async () => {
-                await this.importFoldsToStorage()
+                this.importFoldsToStorage()
                 new Notice('Fold states applied from settings')
             }
         })
@@ -181,7 +181,7 @@ export default class SyncFolds extends Plugin {
         }, 150)
     }
 
-    async exportFoldsToFile() {
+    private async exportFoldsToFile() {
         if (!this.settings.enableSync) {
             log('Sync disabled, skipping export')
             return
@@ -216,7 +216,7 @@ export default class SyncFolds extends Plugin {
         log('Saved', Object.keys(folds).length, 'fold states to settings')
     }
 
-    async importFoldsToStorage() {
+    private importFoldsToStorage() {
         const folds = this.getFoldsObject()
 
         log(
@@ -239,7 +239,7 @@ export default class SyncFolds extends Plugin {
         log('Fold states imported successfully')
     }
 
-    async upsertFoldStateForFile(filePath: string, value: string | null) {
+    private async upsertFoldStateForFile(filePath: string, value: string | null) {
         if (!this.settings.enableSync) {
             log('Sync disabled, skipping upsert')
             return
