@@ -6,7 +6,7 @@ on:
             - '*' # Push events to matching any tag format, i.e. 1.0, 20.15.10
 
 env:
-    PLUGIN_NAME: obsidian-fold-properties # Change this to the name of your plugin-id folder
+    PLUGIN_NAME: sync-folds # Change this to the name of your plugin-id folder
 
 jobs:
     build:
@@ -32,7 +32,7 @@ jobs:
               id: create_release
               uses: actions/create-release@v1
               env:
-                  GITHUB_TOKEN: ${{ secrets.FOLD_PROPERTIES_SECRET }}
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               with:
                   tag_name: ${{ github.ref }}
                   release_name: ${{ github.ref }}
@@ -42,7 +42,7 @@ jobs:
               id: upload-main
               uses: actions/upload-release-asset@v1
               env:
-                  GITHUB_TOKEN: ${{ secrets.FOLD_PROPERTIES_SECRET }}
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               with:
                   upload_url: ${{ steps.create_release.outputs.upload_url }}
                   asset_path: ./main.js
@@ -52,7 +52,7 @@ jobs:
               id: upload-manifest
               uses: actions/upload-release-asset@v1
               env:
-                  GITHUB_TOKEN: ${{ secrets.FOLD_PROPERTIES_SECRET }}
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               with:
                   upload_url: ${{ steps.create_release.outputs.upload_url }}
                   asset_path: ./manifest.json
@@ -62,7 +62,7 @@ jobs:
             #   id: upload-css
             #   uses: actions/upload-release-asset@v1
             #   env:
-            #       GITHUB_TOKEN: ${{ secrets.FOLD_PROPERTIES_SECRET }}
+            #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
             #   with:
             #       upload_url: ${{ steps.create_release.outputs.upload_url }}
             #       asset_path: ./styles.css
