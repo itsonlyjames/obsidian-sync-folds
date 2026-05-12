@@ -1,6 +1,6 @@
 import { Notice, Plugin } from 'obsidian'
 import { SyncFoldSettings, DEFAULT_SETTINGS } from './settings'
-import { FoldStateData } from './types'
+import { FoldStateData, FoldedProperties } from './types'
 import { log } from './log'
 
 export default class SyncFolds extends Plugin {
@@ -58,7 +58,7 @@ export default class SyncFolds extends Plugin {
 
     private getFoldsObject(): FoldStateData {
         try {
-            return JSON.parse(this.settings.folds)
+            return JSON.parse(this.settings.folds) as FoldStateData
         } catch (e) {
             console.error('Failed to parse folds string:', e)
             return {}
@@ -84,6 +84,7 @@ export default class SyncFolds extends Plugin {
         for (const filePath of Object.keys(previousFolds)) {
             if (!currentFolds[filePath]) {
                 const key = `${appId}-note-fold-${filePath}`
+                // eslint-disable-next-line no-restricted-globals -- Must use raw localStorage to bypass our interceptor and write Obsidian's internal fold keys directly
                 this.originalRemoveItem.call(localStorage, key)
                 log('Removed fold from localStorage:', filePath)
             }
@@ -97,6 +98,7 @@ export default class SyncFolds extends Plugin {
             ) {
                 const key = `${appId}-note-fold-${filePath}`
                 const value = JSON.stringify(foldData)
+                // eslint-disable-next-line no-restricted-globals -- Must use raw localStorage to bypass our interceptor and write Obsidian's internal fold keys directly
                 this.originalSetItem.call(localStorage, key, value)
                 log('Updated fold in localStorage:', filePath)
             }
@@ -119,7 +121,7 @@ export default class SyncFolds extends Plugin {
         this.settings = Object.assign(
             {},
             DEFAULT_SETTINGS,
-            await this.loadData()
+            await this.loadData() as Partial<SyncFoldSettings>
         )
     }
 
@@ -134,9 +136,12 @@ export default class SyncFolds extends Plugin {
 
         log('Setting up localStorage interception with prefix:', foldPrefix)
 
-        this.originalSetItem = localStorage.setItem.bind(localStorage)
-        this.originalRemoveItem = localStorage.removeItem.bind(localStorage)
+        // eslint-disable-next-line no-restricted-globals -- Intercepting raw localStorage to observe Obsidian's own fold writes; vault-scoped via appId prefix
+        this.originalSetItem = localStorage.setItem.bind(localStorage) as typeof Storage.prototype.setItem
+        // eslint-disable-next-line no-restricted-globals -- Intercepting raw localStorage to observe Obsidian's own fold writes; vault-scoped via appId prefix
+        this.originalRemoveItem = localStorage.removeItem.bind(localStorage) as typeof Storage.prototype.removeItem
 
+        // eslint-disable-next-line no-restricted-globals -- Monkey-patching localStorage to intercept Obsidian core fold state writes
         localStorage.setItem = (key: string, value: string) => {
             this.originalSetItem(key, value)
 
@@ -147,6 +152,7 @@ export default class SyncFolds extends Plugin {
             }
         }
 
+        // eslint-disable-next-line no-restricted-globals -- Monkey-patching localStorage to intercept Obsidian core fold state removes
         localStorage.removeItem = (key: string) => {
             this.originalRemoveItem(key)
 
@@ -160,9 +166,11 @@ export default class SyncFolds extends Plugin {
 
     restoreLocalStorage() {
         if (this.originalSetItem) {
+            // eslint-disable-next-line no-restricted-globals -- Restoring original localStorage methods on unload
             localStorage.setItem = this.originalSetItem
         }
         if (this.originalRemoveItem) {
+            // eslint-disable-next-line no-restricted-globals -- Restoring original localStorage methods on unload
             localStorage.removeItem = this.originalRemoveItem
         }
     }
@@ -174,10 +182,11 @@ export default class SyncFolds extends Plugin {
 
         log('Debouncing file sync (150ms) for:', filePath)
 
-        this.debounceTimer = window.setTimeout(async () => {
+        this.debounceTimer = window.setTimeout(() => {
             log('Executing debounced file sync for:', filePath)
-            await this.upsertFoldStateForFile(filePath, value)
-            this.debounceTimer = null
+            this.upsertFoldStateForFile(filePath, value)
+                .then(() => { this.debounceTimer = null })
+                .catch(console.error)
         }, 150)
     }
 
@@ -193,16 +202,19 @@ export default class SyncFolds extends Plugin {
         const appId = app.appId
         const folds: FoldStateData = {}
 
+        // eslint-disable-next-line no-restricted-globals -- App#loadLocalStorage cannot enumerate keys by prefix; raw access required to snapshot all fold states
         for (let i = 0; i < localStorage.length; i++) {
+            // eslint-disable-next-line no-restricted-globals -- Same as above
             const key = localStorage.key(i)
             if (key?.startsWith(`${appId}-note-fold-`)) {
                 const filePath = key.replace(`${appId}-note-fold-`, '')
+                // eslint-disable-next-line no-restricted-globals -- Same as above
                 const value = localStorage.getItem(key)
 
                 if (!value) continue
 
                 try {
-                    folds[filePath] = JSON.parse(value)
+                    folds[filePath] = JSON.parse(value) as FoldedProperties
                 } catch (e) {
                     console.error(`Failed to parse fold for ${filePath}`, e)
                 }
@@ -232,6 +244,7 @@ export default class SyncFolds extends Plugin {
             log(filePath, foldData)
             const key = `${appId}-note-fold-${filePath}`
             const value = JSON.stringify(foldData)
+            // eslint-disable-next-line no-restricted-globals -- Must use raw localStorage to bypass our interceptor and write Obsidian's internal fold keys directly
             this.originalSetItem.call(localStorage, key, value)
         }
 
@@ -254,7 +267,7 @@ export default class SyncFolds extends Plugin {
             log('Removed fold state for:', filePath)
         } else {
             try {
-                folds[filePath] = JSON.parse(value)
+                folds[filePath] = JSON.parse(value) as FoldedProperties
                 log('Updated fold state for:', filePath)
             } catch (e) {
                 console.error('Failed to parse fold JSON:', e)

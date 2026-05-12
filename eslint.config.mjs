@@ -2,6 +2,7 @@
 import { defineConfig } from 'eslint/config'
 import tsparser from '@typescript-eslint/parser'
 import obsidianmd from 'eslint-plugin-obsidianmd'
+import globals from 'globals'
 
 export default defineConfig([
     // Obsidian-specific best practices
@@ -14,6 +15,10 @@ export default defineConfig([
             parserOptions: {
                 project: './tsconfig.json',
                 sourceType: 'module'
+            },
+            globals: {
+                ...globals.browser,
+                ...globals.node
             }
         },
         rules: {

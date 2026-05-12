@@ -22,15 +22,22 @@
         "collapse"
     ],
     "license": "MIT",
+    "overrides": {
+        "minimatch": "^9.0.7",
+        "flatted": "^3.4.2",
+        "brace-expansion": "^2.0.3",
+        "picomatch": "^4.0.4",
+        "yaml": "^2.8.3"
+    },
     "devDependencies": {
         "@types/node": "^16.11.6",
         "@typescript-eslint/eslint-plugin": "^8.53.1",
         "@typescript-eslint/parser": "^8.53.1",
         "@typescript-eslint/utils": "^8.53.1",
-        "builtin-modules": "3.3.0",
-        "esbuild": "0.17.3",
+        "esbuild": "^0.25.0",
         "eslint": "^9.39.2",
         "eslint-plugin-obsidianmd": "^0.1.9",
+        "globals": "^17.6.0",
         "obsidian": "latest",
         "tslib": "2.4.0",
         "typescript": "^5.9.3"
