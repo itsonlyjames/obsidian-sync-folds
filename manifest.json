@@ -1,7 +1,7 @@
 {
 	"id": "sync-folds",
 	"name": "Sync Folds",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"minAppVersion": "0.15.0",
 	"description": "Enables Syncing of Fold States Across Devices.",
 	"author": "James Alexandre",
