@@ -47,8 +47,10 @@ Just make sure the plugin is installed and enabled on all devices!
 
 ## Commands
 
-- **Export Folds from Local Storage**: Manually export all current fold states to settings
-- **Import Folds into Local Storage**: Manually import fold states from settings to localStorage
+| Command                         | Function                                                    |
+| ------------------------------- | ----------------------------------------------------------- |
+| Export Folds from Local Storage | Manually export all current fold states to settings         |
+| Import Folds into Local Storage | Manually import fold states from settings to `localStorage` |
 
 ## License
 
