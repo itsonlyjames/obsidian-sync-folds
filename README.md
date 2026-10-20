@@ -4,8 +4,6 @@ Keep your folded headings, lists and properties the same on every device.
 
 ![Sync Folds: fold a note on your laptop and the folds are already there on your phone](docs/hero.gif)
 
-[Watch in full quality (MP4)](docs/hero.mp4)
-
 ## Why
 
 Obsidian saves fold states in each device's `localStorage`, so they never leave the device they were made on. Fold a long note on your laptop, open it on your phone, and it's fully expanded again.
