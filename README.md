@@ -1,61 +1,73 @@
 # Obsidian Sync Folds
 
-A plugin for Obsidian that syncs your fold states across devices by storing them in your plugin settings.
+Keep your folded headings, lists and properties the same on every device.
 
 ![Sync Folds: fold a note on your laptop and the folds are already there on your phone](docs/hero.gif)
 
 [Watch in full quality (MP4)](docs/hero.mp4)
 
-## What Does it Do?
+## Why
 
-Obsidian stores fold states in `localStorage`, which doesn't sync across devices. This plugin solves that by:
+Obsidian saves fold states in each device's `localStorage`, so they never leave the device they were made on. Fold a long note on your laptop, open it on your phone, and it's fully expanded again.
 
-1. Storing all fold states in the plugin's `data.json` file (which syncs with your vault)
-2. Automatically syncing changes as you fold/unfold content
-3. Restoring fold states when you open files on different devices
+Sync Folds stores every fold in the plugin's `data.json` inside your vault, so your folds travel with your notes.
 
-## How it Works
+## How it works
 
-- **On plugin load**: Imports existing fold states from settings to localStorage (or exports current localStorage state if no folds are saved)
-- **When you fold/unfold content**: Automatically saves the change to settings (debounced to 150ms)
-- **When settings change externally**: Automatically detects and syncs changes to localStorage
+| When                                 | Sync Folds…                                                                |
+| ------------------------------------ | -------------------------------------------------------------------------- |
+| The plugin loads                     | Applies the saved folds, or saves this device's folds if none exist yet    |
+| You fold or unfold something         | Saves the change to `data.json` (debounced to 150 ms)                      |
+| `data.json` changes from another device | Applies the new folds to this device                                    |
 
-## Installation
+There's nothing to configure. Install it on every device that shares the vault.
 
-### From Obsidian Community Plugins
+## Works with your sync service
 
-1. Open Settings → Community Plugins
-2. Search for "Sync Folds"
-3. Click Install, then Enable
+Fold states live in `.obsidian/plugins/sync-folds/data.json`, so anything that syncs your vault folder syncs them too:
 
-### Manual Installation
-
-1. Download `main.js`, `manifest.json` from the latest release
-2. Create a folder `VaultFolder/.obsidian/plugins/sync-folds/`
-3. Copy the files into that folder
-4. Reload Obsidian
-5. Enable the plugin in Settings → Community Plugins
-
-## How to Use with Sync
-
-The plugin stores fold states in `.obsidian/plugins/sync-folds/data.json`, which syncs automatically with:
-
-- Obsidian Sync
-- iCloud
-- Dropbox
+- **Obsidian Sync**: turn on **Installed community plugins** under **Settings → Sync → Vault configuration sync**.
+- iCloud, Dropbox, OneDrive or Google Drive
 - Git
-- Self-hosted syncing solutions (Syncthing, CouchDB, etc.)
-- Any other file syncing solution you use
-
-Just make sure the plugin is installed and enabled on all devices!
+- Self-hosted options such as Syncthing, Nextcloud or CouchDB
 
 ## Commands
 
-| Command                         | Function                                                    |
-| ------------------------------- | ----------------------------------------------------------- |
-| Export Folds from Local Storage | Manually export all current fold states to settings         |
-| Import Folds into Local Storage | Manually import fold states from settings to `localStorage` |
+| Command                             | What it does                                                    |
+| ----------------------------------- | --------------------------------------------------------------- |
+| **Export folds from local storage** | Saves all of this device's current fold states to `data.json`   |
+| **Import folds into local storage** | Applies the fold states in `data.json` to this device           |
+
+You shouldn't normally need these. They're there if a device ever gets out of step.
+
+## Installation
+
+### From Community Plugins
+
+1. Open **Settings → Community plugins**.
+2. Turn off **Restricted mode** if prompted.
+3. Click **Browse** and search for "Sync Folds".
+4. Click **Install**, then **Enable**.
+
+### Manual installation
+
+1. Download `main.js` and `manifest.json` from the [latest release](https://github.com/itsonlyjames/obsidian-sync-folds/releases/latest).
+2. Copy them into `<your vault>/.obsidian/plugins/sync-folds/`.
+3. Reload Obsidian and enable **Sync Folds** under **Settings → Community plugins**.
+
+## Compatibility
+
+Works on desktop and mobile. Requires Obsidian 0.15.0 or later.
+
+## Related plugins
+
+- [Fold Properties](https://github.com/itsonlyjames/obsidian-fold-properties) folds the properties of a note, a folder or your whole vault in one click. Sync Folds carries those folds to your other devices.
+- [Quick Select](https://github.com/itsonlyjames/obsidian-quick-select) lets you pick any item in any Obsidian list with <kbd>Mod</kbd> + number.
+
+## Support
+
+If your folds now follow you around, consider [sponsoring its development](https://github.com/sponsors/itsonlyjames).
 
 ## License
 
-MIT
+[MIT](LICENSE)
