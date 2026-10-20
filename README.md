@@ -2,6 +2,10 @@
 
 A plugin for Obsidian that syncs your fold states across devices by storing them in your plugin settings.
 
+![Sync Folds: fold a note on your laptop and the folds are already there on your phone](docs/hero.gif)
+
+[Watch in full quality (MP4)](docs/hero.mp4)
+
 ## What Does it Do?
 
 Obsidian stores fold states in `localStorage`, which doesn't sync across devices. This plugin solves that by:
